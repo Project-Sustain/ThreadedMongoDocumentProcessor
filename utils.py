@@ -39,11 +39,11 @@ def getTimestamp():
     return '[' + datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ']'
 
 
-def logProgress(documentStats):
-    percent_done = round((documentStats.documentsProcessedByThisThread+1 / (documentStats.totalDocumentsForThisThread)) * 100, 6)
-    message = f'{getTimestamp()} [Thread-{documentStats.threadNumber}] {percent_done}% {documentStats.documentsProcessedByThisThread+1}/{documentStats.totalDocumentsForThisThread} Document {documentStats.nextDocumentForThisThread}'
+def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, nextDocumentForThisThread, threadNumber, outputFile):
+    percent_done = round((documentsProcessedByThisThread+1 / (totalDocumentsForThisThread)) * 100, 6)
+    message = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread+1}/{totalDocumentsForThisThread} Document {nextDocumentForThisThread}'
     print(message)
-    with open(documentStats.outputFile, 'a') as output:
+    with open(outputFile, 'a') as output:
         output.write(message + '\n')
 
 

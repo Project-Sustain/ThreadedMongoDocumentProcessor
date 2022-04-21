@@ -8,17 +8,16 @@ import utils
 
 
 class ThreadedDocumentProcessor:
-    def __init__(self, collection, query, threadNumber, numberOfThreads):
+    def __init__(self, collection, numberOfThreads, query={}):
 
-        self.threadNumber = threadNumber
         self.numberOfThreads = numberOfThreads
-
         self.errorFile = 'error.log'
         self.outputFile = 'output.json'
 
         logging.basicConfig(filename=self.errorFile, level=logging.DEBUG, format='%(levelname)s %(name)s %(message)s')
         self.errorLogger = logging.getLogger(__name__)
-        # Create output logger
+        logging.basicConfig(filename=self.outputFile, level=logging.INFO, format='')
+        self.outputLogger = logging.getLogger(__name__)
 
         mongo = pymongo.MongoClient('mongodb://lattice-100:27018/')
         db = mongo['sustaindb']
@@ -27,55 +26,53 @@ class ThreadedDocumentProcessor:
         self.query = query
     
 
-    def __main__():
+    def run(self):
         for i in range(1, self.numberOfThreads+1):
-            thread = Thread(target=iterateDocuments, args=(i,))
+            thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i))
             thread.start()
 
 
-    def iterateDocuments():
+    def iterateDocuments(self, threadNumber):
 
-        progressFile = os.path.expanduser('progressFiles/progress_'+str(self.threadNumber)+'.txt')
+        progressFile = os.path.expanduser('progressFiles/progress_'+str(threadNumber)+'.txt')
 
         if not exists(self.outputFile):
             with open(self.outputFile, 'a') as f:
                 f.write('[\n')
 
-        with open(self.progressFile, 'a') as f:
+        with open(progressFile, 'a') as f:
             pass
 
-        documentStats = {
-            'documentsProcessedByThisThread': utils.numberOfDocumentsProcessedByThisThread(progressFile),
-            'nextDocumentForThisThread': utils.nextDocumentForThisThread(progressFile, self.threadNumber, self.numberOfThreads),
-            'totalDocumentsForThisThread': utils.totalNumberOfDocumentsThisThreadMustProcess(self.threadNumber, self.numberOfDocuments, self.numberOfThreads),
-            'threadNumber': self.threadNumber,
-            'progressFile': progressFile,
-            'outputFile': self.outputFile
-        }
+        documentsProcessedByThisThread = utils.numberOfDocumentsProcessedByThisThread(progressFile)        
+        nextDocumentForThisThread = utils.nextDocumentForThisThread(progressFile, threadNumber, self.numberOfThreads)
+        totalDocumentsForThisThread = utils.totalNumberOfDocumentsThisThreadMustProcess(threadNumber, self.numberOfDocuments, self.numberOfThreads)
 
-        cursor = self.collection.find(self.query, no_cursor_timeout=True).skip(documentStats.nextDocumentForThisThread-1)
+        cursor = self.collection.find(self.query, no_cursor_timeout=True).skip(nextDocumentForThisThread-1)
 
         try:
             while cursor.has_next():
                 document = cursor.next()
-                processDocument(document, documentStats, self.logger)
-                utils.logProgress(documentStats)
-                documentStats.documentsProcessedByThisThread += 1
-                documentStats.nextDocumentForThisThread += self.numberOfThreads
-                cursor.skip(NUM_THREADS-1)
+                ThreadedDocumentProcessor.processDocument(self, document, self.outputLogger)
+                utils.logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, nextDocumentForThisThread, threadNumber, progressFile)
+                documentsProcessedByThisThread += 1
+                nextDocumentForThisThread += self.numberOfThreads
+                cursor.skip(self.numberOfThreads-1)
                         
         except CursorNotFound as e:
-            utils.logError(self.logger, e, self.threadNumber)
-            iterateDocuments(collection, self.threadNumber, self.numberOfThreads)
+            utils.logError(self.errorLogger, e, threadNumber)
+            ThreadedDocumentProcessor.iterateDocuments(self.collection, threadNumber, self.numberOfThreads)
 
         except Exception as e:
-            utils.logError(self.logger, e, self.threadNumber)
+            utils.logError(self.errorLogger, e, threadNumber)
             cursor.close()
             sleep(5)
-            iterateDocuments(collection, self.threadNumber, self.numberOfThreads)
+            ThreadedDocumentProcessor.iterateDocuments(self.collection, threadNumber, self.numberOfThreads)
             
         cursor.close()
-        utils.formatEndOfFile(self.outputFile)
+        completionMessage = f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed'
+        with open(progressFile, 'a') as f:
+            f.write(completionMessage)
+            print(completionMessage)
 
-    def processDocument(document, documentStats, logger):
+    def processDocument(self, document, outputLogger):
         raise NotImplementedError('Implement processDocument()')
