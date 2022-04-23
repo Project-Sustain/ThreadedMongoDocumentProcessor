@@ -10,6 +10,13 @@ def getJSON(file):
     return jsonObject
 
 
+def documentShouldBeProcessedByThisThread(threadNumber, documentNumber, numberOfThreads):
+    if documentNumber > numberOfThreads:
+        return threadNumber == (documentNumber % numberOfThreads) + 1
+    else:
+        return threadNumber == documentNumber
+
+
 def numberOfDocumentsProcessedByThisThread(file):
     try:
         with open(file, 'r') as f:
@@ -18,12 +25,12 @@ def numberOfDocumentsProcessedByThisThread(file):
         return 0
 
 
-def nextDocumentForThisThread(file, threadNumber, NUM_THREADS):
+def lastAbsoluteDocumentNumberProcessedByThisThread(file):
     try:
         with open(file, 'r') as f:
-            return int(f.readlines()[-1].split(' ')[6]) + NUM_THREADS
+            return int(f.readlines()[-1].split(' ')[6])
     except:
-        return threadNumber
+        return 0
 
 
 def totalNumberOfDocumentsThisThreadMustProcess(threadNumber, totalDocuments, NUM_THREADS):
@@ -39,9 +46,9 @@ def getTimestamp():
     return '[' + datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ']'
 
 
-def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, nextDocumentForThisThread, threadNumber, outputFile):
-    percent_done = round((documentsProcessedByThisThread+1 / (totalDocumentsForThisThread)) * 100, 6)
-    message = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread+1}/{totalDocumentsForThisThread} Document {nextDocumentForThisThread}'
+def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, outputFile, documentNumber):
+    percent_done = round((documentsProcessedByThisThread / (totalDocumentsForThisThread)) * 100, 5)
+    message = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread}/{totalDocumentsForThisThread} Document {documentNumber}'
     print(message)
     with open(outputFile, 'a') as output:
         output.write(message + '\n')

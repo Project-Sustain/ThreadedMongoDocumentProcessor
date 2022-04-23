@@ -2,6 +2,8 @@
 '''
 This class can be used to iterate mongodb collections with multiple threads
 See the exampleUsage.py class for an simple example
+
+Dependencies: python3 -m pip install --user pymongo
 '''
 
 from abc import ABC
