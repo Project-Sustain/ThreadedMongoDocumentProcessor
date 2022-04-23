@@ -17,20 +17,20 @@ def documentShouldBeProcessedByThisThread(threadNumber, documentNumber, numberOf
         return threadNumber == documentNumber
 
 
-def numberOfDocumentsProcessedByThisThread(file):
-    try:
-        with open(file, 'r') as f:
-            return int(f.readlines()[1].split(' ')[4].split('/')[0])
-    except:
-        return 0
+# def numberOfDocumentsProcessedByThisThread(file):
+#     try:
+#         with open(file, 'r') as f:
+#             return int(f.readlines()[1].split(' ')[4].split('/')[0])
+#     except:
+#         return 0
 
 
-def lastAbsoluteDocumentNumberProcessedByThisThread(file):
-    try:
-        with open(file, 'r') as f:
-            return int(f.readlines()[1].split(' ')[6])
-    except:
-        return 0
+# def lastAbsoluteDocumentNumberProcessedByThisThread(file):
+#     try:
+#         with open(file, 'r') as f:
+#             return int(f.readlines()[1].split(' ')[6])
+#     except:
+#         return 0
 
 
 def totalNumberOfDocumentsThisThreadMustProcess(threadNumber, totalDocuments, NUM_THREADS):
@@ -46,13 +46,10 @@ def getTimestamp():
     return '[' + datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ']'
 
 
-def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, outputFile, documentNumber, startTime):
+def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, documentNumber):
     percent_done = round((documentsProcessedByThisThread / (totalDocumentsForThisThread)) * 100, 5)
     progressMessage = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread}/{totalDocumentsForThisThread} Document {documentNumber}'
-    startMessage = f'{startTime} [Thread-{threadNumber}] Started'
     print(progressMessage)
-    with open(outputFile, 'w') as output:
-        output.write(startMessage+'\n'+progressMessage)
 
 
 def logError(logger, e, threadNumber):

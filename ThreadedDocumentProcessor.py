@@ -13,7 +13,6 @@ class ThreadedDocumentProcessor(ABC):
 
     def __init__(self, collectionName, numberOfThreads, query, processDocument=lambda self, document: {'id': str(document['_id'])}):
 
-        self.startTime = utils.getTimestamp()
         self.processDocument = processDocument
         self.lock = Lock()
         self.collectionName = collectionName
@@ -23,8 +22,6 @@ class ThreadedDocumentProcessor(ABC):
 
         logging.basicConfig(filename=self.errorFile, level=logging.DEBUG, format='%(levelname)s %(name)s %(message)s')
         self.errorLogger = logging.getLogger(__name__)
-        logging.basicConfig(filename=self.outputFile, level=logging.INFO, format='')
-        self.outputLogger = logging.getLogger(__name__)
         
         mongo = pymongo.MongoClient('mongodb://lattice-100:27018/')
         self.db = mongo['sustaindb']
@@ -38,24 +35,24 @@ class ThreadedDocumentProcessor(ABC):
             thread.start()
 
 
-    def iterateDocuments(self, threadNumber):
+    def iterateDocuments(self, threadNumber, documentNumber=0, documentsProcessedByThisThread=0):
 
-        progressFile = os.path.expanduser('progressFiles/progress_'+str(threadNumber)+'.txt')
+        # progressFile = os.path.expanduser('progressFiles/progress_'+str(threadNumber)+'.txt')
 
         if not exists(self.outputFile):
             with open(self.outputFile, 'a') as f:
                 f.write('[\n')
 
-        if not exists(progressFile):
-            with open(progressFile, 'w') as f:
-                f.write(f'{utils.getTimestamp()} [Thread-{threadNumber}] Started\n')
+        # if not exists(progressFile):
+        #     with open(progressFile, 'w') as f:
+        #         f.write(f'{utils.getTimestamp()} [Thread-{threadNumber}] Started\n')
 
-        lastAbsoluteDocumentNumberProcessedByThisThread = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progressFile)
-        documentNumber = lastAbsoluteDocumentNumberProcessedByThisThread
-        documentsProcessedByThisThread = utils.numberOfDocumentsProcessedByThisThread(progressFile)        
+        # lastAbsoluteDocumentNumberProcessedByThisThread = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progressFile)
+        # documentNumber = lastAbsoluteDocumentNumberProcessedByThisThread
+        # documentsProcessedByThisThread = utils.numberOfDocumentsProcessedByThisThread(progressFile)        
         totalDocumentsForThisThread = utils.totalNumberOfDocumentsThisThreadMustProcess(threadNumber, self.numberOfDocuments, self.numberOfThreads)
         
-        cursor = self.db[self.collectionName].find(self.query, no_cursor_timeout=True).skip(lastAbsoluteDocumentNumberProcessedByThisThread)
+        cursor = self.db[self.collectionName].find(self.query, no_cursor_timeout=True).skip(documentNumber)
 
         try:
             for document in cursor:
@@ -75,21 +72,22 @@ class ThreadedDocumentProcessor(ABC):
                         utils.logError(self.errorLogger, e, threadNumber)
 
                     documentsProcessedByThisThread += 1
-                    utils.logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, progressFile, documentNumber, self.startTime)
+                    utils.logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, documentNumber)
                         
         except CursorNotFound as e:
             utils.logError(self.errorLogger, e, threadNumber)
-            ThreadedDocumentProcessor.iterateDocuments(self, threadNumber)
+            ThreadedDocumentProcessor.iterateDocuments(self, threadNumber, documentNumber=documentNumber, documentsProcessedByThisThread=documentsProcessedByThisThread)
 
         except Exception as e:
             utils.logError(self.errorLogger, e, threadNumber)
             cursor.close()
             sleep(5)
-            ThreadedDocumentProcessor.iterateDocuments(self, threadNumber)
+            ThreadedDocumentProcessor.iterateDocuments(self, threadNumber, documentNumber=documentNumber, documentsProcessedByThisThread=documentsProcessedByThisThread)
             
         cursor.close()
-        completionMessage = f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed'
-        with open(progressFile, 'w') as f:
-            f.write(completionMessage)
-            print(completionMessage)
+        # completionMessage = f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed'
+        # with open(progressFile, 'w') as f:
+        #     f.write(completionMessage)
+        #     print(completionMessage)
+        print(f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed')
 
