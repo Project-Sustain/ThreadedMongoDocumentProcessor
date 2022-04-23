@@ -20,7 +20,7 @@ def documentShouldBeProcessedByThisThread(threadNumber, documentNumber, numberOf
 def numberOfDocumentsProcessedByThisThread(file):
     try:
         with open(file, 'r') as f:
-            return int(f.readlines()[-1].split(' ')[4].split('/')[0])
+            return int(f.readlines()[1].split(' ')[4].split('/')[0])
     except:
         return 0
 
@@ -28,7 +28,7 @@ def numberOfDocumentsProcessedByThisThread(file):
 def lastAbsoluteDocumentNumberProcessedByThisThread(file):
     try:
         with open(file, 'r') as f:
-            return int(f.readlines()[-1].split(' ')[6])
+            return int(f.readlines()[1].split(' ')[6])
     except:
         return 0
 
@@ -46,12 +46,13 @@ def getTimestamp():
     return '[' + datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ']'
 
 
-def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, outputFile, documentNumber):
+def logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, outputFile, documentNumber, startTime):
     percent_done = round((documentsProcessedByThisThread / (totalDocumentsForThisThread)) * 100, 5)
-    message = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread}/{totalDocumentsForThisThread} Document {documentNumber}'
-    print(message)
-    with open(outputFile, 'a') as output:
-        output.write(message + '\n')
+    progressMessage = f'{getTimestamp()} [Thread-{threadNumber}] {percent_done}% {documentsProcessedByThisThread}/{totalDocumentsForThisThread} Document {documentNumber}'
+    startMessage = f'{startTime} [Thread-{threadNumber}] Started'
+    print(progressMessage)
+    with open(outputFile, 'w') as output:
+        output.write(startMessage+'\n'+progressMessage)
 
 
 def logError(logger, e, threadNumber):
@@ -60,8 +61,8 @@ def logError(logger, e, threadNumber):
     print(errorMessage)
 
 
-def formatEndOfFile(file): # FIX THIS
-    with open(file, 'wb+') as f:   
-        f.seek(-2, os.SEEK_END)
-        f.truncate()
-        f.write('\n]')
+# def formatEndOfFile(file): # FIX THIS
+#     with open(file, 'ab+') as f:   
+#         f.seek(-2, os.SEEK_END)
+#         f.truncate()
+#         f.write('\n]')

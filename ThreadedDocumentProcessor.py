@@ -1,11 +1,4 @@
 
-'''
-This class can be used to iterate mongodb collections with multiple threads
-See the exampleUsage.py class for an simple example
-
-Dependencies: python3 -m pip install --user pymongo
-'''
-
 from abc import ABC
 import json
 import pymongo, os, logging
@@ -20,6 +13,7 @@ class ThreadedDocumentProcessor(ABC):
 
     def __init__(self, collectionName, numberOfThreads, query, processDocument=lambda self, document: {'id': str(document['_id'])}):
 
+        self.startTime = utils.getTimestamp()
         self.processDocument = processDocument
         self.lock = Lock()
         self.collectionName = collectionName
@@ -38,7 +32,6 @@ class ThreadedDocumentProcessor(ABC):
         self.numberOfDocuments = self.db[collectionName].count_documents(query)
 
     
-
     def run(self):
         for i in range(1, self.numberOfThreads+1):
             thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i))
@@ -53,8 +46,9 @@ class ThreadedDocumentProcessor(ABC):
             with open(self.outputFile, 'a') as f:
                 f.write('[\n')
 
-        with open(progressFile, 'a') as f:
-            pass
+        if not exists(progressFile):
+            with open(progressFile, 'w') as f:
+                f.write(f'{utils.getTimestamp()} [Thread-{threadNumber}] Started\n')
 
         lastAbsoluteDocumentNumberProcessedByThisThread = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progressFile)
         documentNumber = lastAbsoluteDocumentNumberProcessedByThisThread
@@ -81,7 +75,7 @@ class ThreadedDocumentProcessor(ABC):
                         utils.logError(self.errorLogger, e, threadNumber)
 
                     documentsProcessedByThisThread += 1
-                    utils.logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, progressFile, documentNumber)
+                    utils.logProgress(documentsProcessedByThisThread, totalDocumentsForThisThread, threadNumber, progressFile, documentNumber, self.startTime)
                         
         except CursorNotFound as e:
             utils.logError(self.errorLogger, e, threadNumber)
@@ -95,7 +89,7 @@ class ThreadedDocumentProcessor(ABC):
             
         cursor.close()
         completionMessage = f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed'
-        with open(progressFile, 'a') as f:
+        with open(progressFile, 'w') as f:
             f.write(completionMessage)
             print(completionMessage)
 
