@@ -15,8 +15,8 @@ class DocumentProcessor(ThreadedDocumentProcessor):
         Update this function to perform whatever actions you need to on each document.
         '''
         state_name =  document['properties']['NAME']
-        formatted_state_name = state_name + ' State'
-        return {'name': formatted_state_name}
+        state_code = document['properties']['STUSPS']
+        return {state_name: state_code}
 
 
 def main(collection, number_of_threads):
