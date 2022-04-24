@@ -41,9 +41,3 @@ def logError(logger, e, thread_number):
     logger.log(logging.ERROR, error_message)
     print(error_message)
 
-
-# def formatEndOfFile(file): # FIX THIS
-#     with open(file, 'ab+') as f:   
-#         f.seek(-2, os.SEEK_END)
-#         f.truncate()
-#         f.write('\n]')
