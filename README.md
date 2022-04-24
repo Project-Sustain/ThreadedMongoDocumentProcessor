@@ -14,8 +14,10 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
 
 ## Files
 ### errors.log
+- This file is automatically created when the program is run
 - This is the log file for any `exceptions` that arise during document processing
 ### output.json
+- This file is automatically created when the program is run
 - This is where the program will write `json` output, if any
 ### utils.py
 - Utility functions for `ThreadedDocumentProcessor.py`
