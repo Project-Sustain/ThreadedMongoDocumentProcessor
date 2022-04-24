@@ -1,5 +1,5 @@
 
-import logging, json
+import logging, json, os
 from datetime import datetime
 
 
@@ -12,18 +12,30 @@ def getJSON(file):
 
 def numberOfDocumentsProcessedByThisThread(file):
     try:
-        with open(file, 'r') as f:
-            return int(f.readlines()[-1].split(' ')[0]) # readLines() isn't gonna work for a file thats 8,000,000 lines long
+        return int(getLastLineOfFile(file).split(' ')[0])
     except:
         return 0
 
 
 def lastAbsoluteDocumentNumberProcessedByThisThread(file):
     try:
-        with open(file, 'r') as f:
-            return int(f.readlines()[-1].split(' ')[1]) # readLines() isn't gonna work for a file thats 8,000,000 lines long
+        return int(getLastLineOfFile(file).split(' ')[1])
     except:
         return 0
+
+
+def getLastLineOfFile(file):
+    with open(file, 'rb') as f:
+        try:
+            f.seek(-2, os.SEEK_END)
+            while f.read(1) != b'\n':
+                f.seek(-2, os.SEEK_CUR)
+            last_line = f.readline().decode()
+            return last_line
+        except OSError as e:
+            print(e)
+            f.seek(0)
+            return ''
 
 
 def documentShouldBeProcessedByThisThread(thread_number, document_number, number_of_threads):

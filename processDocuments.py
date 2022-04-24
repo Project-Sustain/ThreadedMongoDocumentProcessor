@@ -21,10 +21,11 @@ class DocumentProcessor(ThreadedDocumentProcessor):
 
 def main(collection, number_of_threads, restart=False):
     if not restart:
-        parent_dir = os.getcwd()
-        dir = 'progressFiles'
-        path = os.path.join(parent_dir, dir)
-        os.mkdir(path)
+        try:
+            os.mkdir(os.path.join('progressFiles'))
+        except FileExistsError:
+            print(f'The progress directory already exists - you\'re probably manually restarting the script. Include `-r` at the end of the input command.')
+            sys.exit()
     query = {} # Update the `query` field to specify a mongo query
     documentProcessor = DocumentProcessor(collection, number_of_threads, query, restart)
     documentProcessor.run()
