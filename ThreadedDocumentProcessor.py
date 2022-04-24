@@ -10,8 +10,9 @@ import utils
 
 class ThreadedDocumentProcessor(ABC):
 
-    def __init__(self, collection_name, number_of_threads, query, processDocumentFunction):
+    def __init__(self, collection_name, number_of_threads, query, restart, processDocumentFunction):
 
+        self.script_was_restarted = restart # If this script was manually restarted
         self.first_write = True
         self.processDocument = processDocumentFunction
         self.lock = Lock()
@@ -41,11 +42,22 @@ class ThreadedDocumentProcessor(ABC):
 
         with open(self.output_file, 'a') as f:
             f.write('\n]')
+        
+        # FIXME delete progress files and progressFiles folder
 
 
-    def iterateDocuments(self, thread_number, document_number=0, documents_processed_by_this_thread=0):
+    def iterateDocuments(self, thread_number):
       
+        progress_file = os.path.join(f'progressFiles/thread_{thread_number}.txt')
+
+        if not exists(progress_file):
+            with open(progress_file, 'a') as f:
+                f.write(f'{utils.getTimestamp()} Started\n')
+        
         total_documents_for_this_thread = utils.totalNumberOfDocumentsThisThreadMustProcess(thread_number, self.number_of_documents, self.number_of_threads)
+        document_number = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progress_file)
+        documents_processed_by_this_thread = utils.numberOfDocumentsProcessedByThisThread(progress_file)        
+        
         cursor = self.db[self.collection_name].find(self.query, no_cursor_timeout=True).skip(document_number)
 
         try:
@@ -58,7 +70,7 @@ class ThreadedDocumentProcessor(ABC):
                         if object_to_write: # If your `processDocument()` function returns a dictionary, write it to the output file
                             with self.lock: # Thread-safe access to the output file
                                 with open(self.output_file, 'a') as f:
-                                    if self.first_write:
+                                    if self.first_write and not self.script_was_restarted:
                                         f.write('[\n\t')
                                         f.write(json.dumps(object_to_write))
                                         self.first_write = False
@@ -70,18 +82,21 @@ class ThreadedDocumentProcessor(ABC):
                         utils.logError(self.error_logger, e, thread_number)
 
                     documents_processed_by_this_thread += 1
-                    utils.logProgress(documents_processed_by_this_thread, total_documents_for_this_thread, thread_number, document_number)
+                    utils.logProgress(documents_processed_by_this_thread, total_documents_for_this_thread, thread_number, document_number, progress_file)
                         
         except CursorNotFound as e:
             utils.logError(self.error_logger, e, thread_number)
-            ThreadedDocumentProcessor.iterateDocuments(self, thread_number, document_number=document_number, documents_processed_by_this_thread=documents_processed_by_this_thread)
+            ThreadedDocumentProcessor.iterateDocuments(self, thread_number)
 
         except Exception as e:
             utils.logError(self.error_logger, e, thread_number)
             cursor.close()
             sleep(5)
-            ThreadedDocumentProcessor.iterateDocuments(self, thread_number, document_number=document_number, documents_processed_by_this_thread=documents_processed_by_this_thread)
+            ThreadedDocumentProcessor.iterateDocuments(self, thread_number)
             
         cursor.close()
+        
+        with open(progress_file, 'a') as f:
+            f.write(f'{utils.getTimestamp()} Completed')
 
         print(f'{utils.getTimestamp()} [Thread-{thread_number}] Completed')

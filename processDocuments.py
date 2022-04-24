@@ -1,10 +1,10 @@
 
-import sys
+import sys, os
 from ThreadedDocumentProcessor import ThreadedDocumentProcessor
 
 class DocumentProcessor(ThreadedDocumentProcessor):
-    def __init__(self, collection, number_of_threads, query):
-        super().__init__(collection, number_of_threads, query, DocumentProcessor.processDocument)
+    def __init__(self, collection, number_of_threads, query, restart):
+        super().__init__(collection, number_of_threads, query, restart, DocumentProcessor.processDocument)
 
     def processDocument(self, document):
         '''
@@ -19,21 +19,25 @@ class DocumentProcessor(ThreadedDocumentProcessor):
         return {state_name: state_code}
 
 
-def main(collection, number_of_threads):
-    with open('startTime.txt', 'w') as f:
-        message = f'{utils.getTimestamp()} Started'
-        f.write(message)
+def main(collection, number_of_threads, restart=False):
+    if not restart:
+        parent_dir = os.getcwd()
+        dir = 'progressFiles'
+        path = os.path.join(parent_dir, dir)
+        os.mkdir(path)
     query = {} # Update the `query` field to specify a mongo query
-    documentProcessor = DocumentProcessor(collection, number_of_threads, query)
+    documentProcessor = DocumentProcessor(collection, number_of_threads, query, restart)
     documentProcessor.run()
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print(f'Usage: python3 {sys.argv[0]} <collection_to_iterate> <number_of_threads>')
-    collection = sys.argv[1]
-    try:
+    # FIXME add input validation
+    if len(sys.argv) == 3:
+        collection = sys.argv[1]
         number_of_threads = int(sys.argv[2])
         main(collection, number_of_threads)
-    except TypeError as e:
-        print('Second arg must be thread number and must be an integer')
+    if len(sys.argv) == 4:
+        collection = sys.argv[1]
+        restart = True
+        number_of_threads = int(sys.argv[2])
+        main(collection, number_of_threads, restart=True)
