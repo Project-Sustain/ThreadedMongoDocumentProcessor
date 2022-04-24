@@ -1,7 +1,6 @@
 
 from abc import ABC
-import json
-import pymongo, os, logging
+import pymongo, os, logging, json
 from time import sleep
 from os.path import exists
 from threading import Thread, Lock
@@ -11,9 +10,9 @@ import utils
 
 class ThreadedDocumentProcessor(ABC):
 
-    def __init__(self, collectionName, numberOfThreads, query, processDocument=lambda self, document: {'id': str(document['_id'])}):
+    def __init__(self, collectionName, numberOfThreads, query, processDocumentFunction):
 
-        self.processDocument = processDocument
+        self.processDocument = processDocumentFunction
         self.lock = Lock()
         self.collectionName = collectionName
         self.numberOfThreads = numberOfThreads
@@ -37,33 +36,22 @@ class ThreadedDocumentProcessor(ABC):
 
     def iterateDocuments(self, threadNumber, documentNumber=0, documentsProcessedByThisThread=0):
 
-        # progressFile = os.path.expanduser('progressFiles/progress_'+str(threadNumber)+'.txt')
-
         if not exists(self.outputFile):
             with open(self.outputFile, 'a') as f:
                 f.write('[\n')
-
-        # if not exists(progressFile):
-        #     with open(progressFile, 'w') as f:
-        #         f.write(f'{utils.getTimestamp()} [Thread-{threadNumber}] Started\n')
-
-        # lastAbsoluteDocumentNumberProcessedByThisThread = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progressFile)
-        # documentNumber = lastAbsoluteDocumentNumberProcessedByThisThread
-        # documentsProcessedByThisThread = utils.numberOfDocumentsProcessedByThisThread(progressFile)        
+      
         totalDocumentsForThisThread = utils.totalNumberOfDocumentsThisThreadMustProcess(threadNumber, self.numberOfDocuments, self.numberOfThreads)
-        
         cursor = self.db[self.collectionName].find(self.query, no_cursor_timeout=True).skip(documentNumber)
 
         try:
             for document in cursor:
-
                 documentNumber += 1
+
                 if utils.documentShouldBeProcessedByThisThread(threadNumber, documentNumber, self.numberOfThreads):
-                    
                     try:
-                        objectToWrite = self.processDocument(self, document)
-                        if objectToWrite:
-                            with self.lock:
+                        objectToWrite = self.processDocument(self, document) # This is where we call the `processDocument()` fuction written in `processDocuments.py`
+                        if objectToWrite: # If your `processDocument()` function returns a dictionary, write it to the output file
+                            with self.lock: # Thread-safe access to the output file
                                 with open(self.outputFile, 'a') as f:
                                     f.write(json.dumps(objectToWrite))
                                     f.write(',\n')
@@ -85,9 +73,5 @@ class ThreadedDocumentProcessor(ABC):
             ThreadedDocumentProcessor.iterateDocuments(self, threadNumber, documentNumber=documentNumber, documentsProcessedByThisThread=documentsProcessedByThisThread)
             
         cursor.close()
-        # completionMessage = f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed'
-        # with open(progressFile, 'w') as f:
-        #     f.write(completionMessage)
-        #     print(completionMessage)
-        print(f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed')
 
+        print(f'{utils.getTimestamp()} [Thread-{threadNumber}] Completed')

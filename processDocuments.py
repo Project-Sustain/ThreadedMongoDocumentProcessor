@@ -6,23 +6,19 @@ class DocumentProcessor(ThreadedDocumentProcessor):
     def __init__(self, collection, numberOfThreads, query):
         super().__init__(collection, numberOfThreads, query, DocumentProcessor.processDocument)
 
-    '''
-    This is the function that will be called by each thread on each document.
-    If this function returns something, it must be a dictionary. 
-    Said dictionary will be written in JSON format to the output.json file.
-
-    Update this function to perform whatever actions you need to on each document.
-    '''
     def processDocument(self, document):
+        '''
+        This is the function that will be called by each thread on each document.
+        If this function returns something, it must be a dictionary. 
+        Said dictionary will be written in JSON format to the output.json file.
+
+        Update this function to perform whatever actions you need to on each document.
+        '''
         return {'name': document['properties']['NAME']}
 
 
-
-'''
-Update the `query` field to specify a mongo query
-'''
 def main(collection, numberOfThreads):
-    query = {}
+    query = {} # Update the `query` field to specify a mongo query
     documentProcessor = DocumentProcessor(collection, numberOfThreads, query)
     documentProcessor.run()
 
