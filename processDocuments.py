@@ -29,5 +29,8 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print(f'Usage: python3 {sys.argv[0]} <collection_to_iterate> <number_of_threads>')
     collection = sys.argv[1]
-    number_of_threads = sys.argv[2]
-    main(collection, number_of_threads)
+    try:
+        number_of_threads = int(sys.argv[2])
+        main(collection, number_of_threads)
+    except TypeError as e:
+        print('Second arg must be thread number and must be an integer')
