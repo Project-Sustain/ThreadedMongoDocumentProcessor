@@ -43,7 +43,7 @@ class ThreadedDocumentProcessor(ABC):
         with open(self.output_file, 'a') as f:
             f.write('\n]')
         
-        
+
     def iterateDocuments(self, thread_number):
       
         progress_file = os.path.join(f'progressFiles/thread_{thread_number}.txt')
@@ -93,8 +93,5 @@ class ThreadedDocumentProcessor(ABC):
             ThreadedDocumentProcessor.iterateDocuments(self, thread_number)
             
         cursor.close()
-
-        with open(progress_file, 'a') as f:
-            f.write(f'{utils.getTimestamp()} Completed')
 
         print(f'{utils.getTimestamp()} [Thread-{thread_number}] Completed')
