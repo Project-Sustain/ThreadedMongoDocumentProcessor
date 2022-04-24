@@ -34,6 +34,9 @@ class ThreadedDocumentProcessor(ABC):
         for i in range(1, self.number_of_threads+1):
             thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i))
             thread.start()
+        
+        with open(self.output_file, 'a') as f:
+            f.write(']')
 
 
     def iterateDocuments(self, thread_number, document_number=0, documents_processed_by_this_thread=0):
@@ -80,7 +83,5 @@ class ThreadedDocumentProcessor(ABC):
             ThreadedDocumentProcessor.iterateDocuments(self, thread_number, document_number=document_number, documents_processed_by_this_thread=documents_processed_by_this_thread)
             
         cursor.close()
-        with open(self.output_file, 'a') as f:
-            f.write(']')
 
         print(f'{utils.getTimestamp()} [Thread-{thread_number}] Completed')
