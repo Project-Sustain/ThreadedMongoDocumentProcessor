@@ -17,22 +17,6 @@ def documentShouldBeProcessedByThisThread(threadNumber, documentNumber, numberOf
         return threadNumber == documentNumber
 
 
-# def numberOfDocumentsProcessedByThisThread(file):
-#     try:
-#         with open(file, 'r') as f:
-#             return int(f.readlines()[1].split(' ')[4].split('/')[0])
-#     except:
-#         return 0
-
-
-# def lastAbsoluteDocumentNumberProcessedByThisThread(file):
-#     try:
-#         with open(file, 'r') as f:
-#             return int(f.readlines()[1].split(' ')[6])
-#     except:
-#         return 0
-
-
 def totalNumberOfDocumentsThisThreadMustProcess(threadNumber, totalDocuments, NUM_THREADS):
     genericTotal = totalDocuments // NUM_THREADS
     leftover = totalDocuments % NUM_THREADS
