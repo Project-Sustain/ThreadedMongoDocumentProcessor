@@ -10,16 +10,14 @@ import utils
 
 class ThreadedDocumentProcessor(ABC):
 
-    def __init__(self, collection_name, number_of_threads, query, restart, processDocumentFunction):
+    def __init__(self, collection_name, number_of_threads, query, processDocumentFunction):
 
-        self.script_was_restarted = restart # If this script was manually restarted
-        self.first_write = True
         self.processDocument = processDocumentFunction
         self.lock = Lock()
         self.collection_name = collection_name
         self.number_of_threads = number_of_threads
-        self.error_file = 'error.log'
-        self.output_file = 'output.json'
+        self.error_file = os.path.join('outputFiles/error.log')
+        self.output_file = os.path.join('outputFiles/output.json')
 
         logging.basicConfig(filename=self.error_file, level=logging.DEBUG, format='%(levelname)s %(name)s %(message)s')
         self.error_logger = logging.getLogger(__name__)
@@ -46,7 +44,7 @@ class ThreadedDocumentProcessor(ABC):
 
     def iterateDocuments(self, thread_number):
       
-        progress_file = os.path.join(f'progressFiles/thread_{thread_number}.txt')
+        progress_file = os.path.join(f'outputFiles/thread_{thread_number}.txt')
 
         if not exists(progress_file):
             with open(progress_file, 'a') as f:
@@ -68,10 +66,9 @@ class ThreadedDocumentProcessor(ABC):
                         if object_to_write: # If your `processDocument()` function returns a dictionary, write it to the output file
                             with self.lock: # Thread-safe access to the output file
                                 with open(self.output_file, 'a') as f:
-                                    if self.first_write and not self.script_was_restarted:
+                                    if document_number == 1:
                                         f.write('[\n\t')
                                         f.write(json.dumps(object_to_write))
-                                        self.first_write = False
                                     else:
                                         f.write(',\n\t')
                                         f.write(json.dumps(object_to_write))

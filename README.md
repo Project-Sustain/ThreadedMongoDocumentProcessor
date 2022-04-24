@@ -11,7 +11,6 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
     - This dictionary will be formatted into `json` and written to the `output.json` file
 ### Running the Program
 - If starting the script for the first time `python3 processDocuments.py <collection_name> <number_of_threads>`
-- If restarting the script manually `python3 processDocuments.py <collection_name> <number_of_threads> -r`
 
 ## Files
 ### errors.log
