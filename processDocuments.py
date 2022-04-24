@@ -20,6 +20,9 @@ class DocumentProcessor(ThreadedDocumentProcessor):
 
 
 def main(collection, number_of_threads):
+    with open('startTime.txt', 'a') as f:
+        message = f'{utils.getTimestamp()} Started'
+        f.write(message)
     query = {} # Update the `query` field to specify a mongo query
     documentProcessor = DocumentProcessor(collection, number_of_threads, query)
     documentProcessor.run()
