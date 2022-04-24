@@ -12,6 +12,8 @@ class ThreadedDocumentProcessor(ABC):
 
     def __init__(self, collection_name, number_of_threads, query, processDocumentFunction):
 
+        self.first_write = True
+
         self.processDocument = processDocumentFunction
         self.lock = Lock()
         self.collection_name = collection_name
@@ -53,8 +55,12 @@ class ThreadedDocumentProcessor(ABC):
                         if object_to_write: # If your `processDocument()` function returns a dictionary, write it to the output file
                             with self.lock: # Thread-safe access to the output file
                                 with open(self.output_file, 'a') as f:
-                                    f.write(json.dumps(object_to_write))
-                                    f.write(',\n')
+                                    if self.first_write:
+                                        f.write(json.dumps(object_to_write))
+                                        self.first_write = False
+                                    else:
+                                        f.write(',\n')
+                                        f.write(json.dumps(object_to_write))
 
                     except Exception as e:
                         utils.logError(self.error_logger, e, thread_number)
