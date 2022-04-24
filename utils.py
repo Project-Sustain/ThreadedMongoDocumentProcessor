@@ -10,6 +10,22 @@ def getJSON(file):
     return json_object
 
 
+def numberOfDocumentsProcessedByThisThread(file):
+    try:
+        with open(file, 'r') as f:
+            return int(f.readlines()[-1].split(' ')[4].split('/')[0])
+    except:
+        return 0
+
+
+def nextDocumentForThisThread(file, threadNumber, NUM_THREADS):
+    try:
+        with open(file, 'r') as f:
+            return int(f.readlines()[-1].split(' ')[6]) + NUM_THREADS
+    except:
+        return threadNumber
+
+
 def documentShouldBeProcessedByThisThread(thread_number, document_number, number_of_threads):
     if document_number > number_of_threads:
         return thread_number == (document_number % number_of_threads) + 1
