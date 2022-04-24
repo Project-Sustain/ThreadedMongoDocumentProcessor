@@ -56,10 +56,11 @@ class ThreadedDocumentProcessor(ABC):
                             with self.lock: # Thread-safe access to the output file
                                 with open(self.output_file, 'a') as f:
                                     if self.first_write:
+                                        f.write('\t')
                                         f.write(json.dumps(object_to_write))
                                         self.first_write = False
                                     else:
-                                        f.write(',\n')
+                                        f.write(',\n\t')
                                         f.write(json.dumps(object_to_write))
 
                     except Exception as e:
@@ -79,5 +80,7 @@ class ThreadedDocumentProcessor(ABC):
             ThreadedDocumentProcessor.iterateDocuments(self, thread_number, document_number=document_number, documents_processed_by_this_thread=documents_processed_by_this_thread)
             
         cursor.close()
+        with open(self.output_file, 'a') as f:
+            f.write(']')
 
         print(f'{utils.getTimestamp()} [Thread-{thread_number}] Completed')
