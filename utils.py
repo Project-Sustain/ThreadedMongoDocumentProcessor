@@ -5,9 +5,9 @@ from datetime import datetime
 
 def getJSON(file):
     f = open(file)
-    jsonObject = json.load(f)
+    json_object = json.load(f)
     f.close()
-    return jsonObject
+    return json_object
 
 
 def documentShouldBeProcessedByThisThread(thread_number, document_number, number_of_threads):
