@@ -3,8 +3,8 @@ import sys
 from ThreadedDocumentProcessor import ThreadedDocumentProcessor
 
 class DocumentProcessor(ThreadedDocumentProcessor):
-    def __init__(self, collection, numberOfThreads, query):
-        super().__init__(collection, numberOfThreads, query, DocumentProcessor.processDocument)
+    def __init__(self, collection, number_of_threads, query):
+        super().__init__(collection, number_of_threads, query, DocumentProcessor.processDocument)
 
     def processDocument(self, document):
         '''
@@ -14,12 +14,14 @@ class DocumentProcessor(ThreadedDocumentProcessor):
 
         Update this function to perform whatever actions you need to on each document.
         '''
-        return {'name': document['properties']['NAME']}
+        state_name =  document['properties']['NAME']
+        formatted_state_name = state_name + ' State'
+        return {'name': formatted_state_name}
 
 
-def main(collection, numberOfThreads):
+def main(collection, number_of_threads):
     query = {} # Update the `query` field to specify a mongo query
-    documentProcessor = DocumentProcessor(collection, numberOfThreads, query)
+    documentProcessor = DocumentProcessor(collection, number_of_threads, query)
     documentProcessor.run()
 
 
@@ -27,5 +29,5 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print(f'Usage: python3 {sys.argv[0]} <collection_to_iterate> <number_of_threads>')
     collection = sys.argv[1]
-    numberOfThreads = sys.argv[2]
-    main(collection, numberOfThreads)
+    number_of_threads = sys.argv[2]
+    main(collection, number_of_threads)

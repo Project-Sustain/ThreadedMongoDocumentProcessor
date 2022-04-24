@@ -14,7 +14,7 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
 
 ## Files
 ### errors.log
-- This file is automatically created when the program is run
+- This file is automatically created when the program is run _if_ any exceptions are caught
 - This is the log file for any `exceptions` that arise during document processing
 ### output.json
 - This file is automatically created when the program is run
@@ -36,7 +36,7 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
 - Defines a `processDocument()` method to be filled out by the user
 
 ## In Case of Emergency
-- If you need to stop the program and restart it for any reason, you can read the `documentNumber` as the last integer printed in each thread's progress output, and `documentsProcessedByThisThread` as the numerator of the fraction in the same progress message, and pass those in explicitly in `ThreadedDocumentProcessor.py` as two additional arguments, in that order, in the `run()` method.
-- It would look like this: `thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i, <documentNumber>, <documentsProcessedByThisThread>))`
+- If you need to stop the program and restart it for any reason, you can read the `document_number` as the last integer printed in each thread's progress output, and `documents_processed_by_this_thread` as the numerator of the fraction in the same progress message, and pass those in explicitly in `ThreadedDocumentProcessor.py` as two additional arguments, in that order, in the `run()` method.
+- It would look like this: `thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i, <document_number>, <documents_processed_by_this_thread>))`
 - This will cause the script to restart where it left off.
 - Note: this happens automatically if an exception is thrown, just _not_ if you kill the script with `ctrl+c`
