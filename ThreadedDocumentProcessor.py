@@ -31,12 +31,17 @@ class ThreadedDocumentProcessor(ABC):
 
     
     def run(self):
+        threads = []
         for i in range(1, self.number_of_threads+1):
             thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i))
+            threads.append(thread)
             thread.start()
         
+        for thread in threads:
+            thread.join()
+
         with open(self.output_file, 'a') as f:
-            f.write(']')
+            f.write('\n]')
 
 
     def iterateDocuments(self, thread_number, document_number=0, documents_processed_by_this_thread=0):
