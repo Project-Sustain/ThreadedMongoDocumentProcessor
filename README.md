@@ -32,3 +32,9 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
 ### processDocuments.py
 - Takes command-line input (see Running the Program section) and passes it to the program constructor
 - Defines a `processDocument()` method to be filled out by the user
+
+## In Case of Emergency
+- If you need to stop the program and restart it for any reason, you can read the `documentNumber` as the last integer printed in each thread's progress output, and `documentsProcessedByThisThread` as the numerator of the fraction in the same progress message, and pass those in explicitly in `ThreadedDocumentProcessor.py` as two additional arguments, in that order, in the `run()` method.
+- It would look like this: `thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i, <documentNumber>, <documentsProcessedByThisThread>))`
+- This will cause the script to restart where it left off.
+- Note: this happens automatically if an exception is thrown, just _not_ if you kill the script with `ctrl+c`
