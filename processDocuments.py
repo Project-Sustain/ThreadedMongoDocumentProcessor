@@ -24,7 +24,7 @@ def main(collection, number_of_threads, restart=False):
         try:
             os.mkdir(os.path.join('progressFiles'))
         except FileExistsError:
-            print(f'The progress directory already exists - you\'re probably manually restarting the script. Include `-r` at the end of the input command.')
+            print(f'The progress directory already exists - you\'re probably manually restarting the script. Include `-r` at the end of the run command to indicate that you\'re restarting it.')
             sys.exit()
     query = {} # Update the `query` field to specify a mongo query
     documentProcessor = DocumentProcessor(collection, number_of_threads, query, restart)
@@ -32,7 +32,8 @@ def main(collection, number_of_threads, restart=False):
 
 
 if __name__ == '__main__':
-    # FIXME add input validation
+    if len(sys.argv) == 3 or len(sys.argv) == 4:
+        print(f'Invalid args. Check the `README.md` file for program usage')
     if len(sys.argv) == 3:
         collection = sys.argv[1]
         number_of_threads = int(sys.argv[2])
