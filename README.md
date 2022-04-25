@@ -10,7 +10,7 @@ The purpose of this repo is to facilitate multi-threaded processing of `mongo` c
     - If you return anything from the function, it _must_ be a python `dictionary`
     - This dictionary will be formatted into `json` and written to the `output.json` file
 ### Running the Program
-- If starting the script for the first time `python3 processDocuments.py <collection_name> <number_of_threads>`
+- `python3 processDocuments.py <collection_name> <number_of_threads>`
 
 ## Files
 ### errors.log
