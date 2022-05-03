@@ -29,6 +29,8 @@ class ThreadedDocumentProcessor(ABC):
 
     
     def run(self):
+        with open(self.output_file, 'a') as f:
+            f.write('[\n\t')
         threads = []
         for i in range(1, self.number_of_threads+1):
             thread = Thread(target=ThreadedDocumentProcessor.iterateDocuments, args=(self, i))
@@ -54,7 +56,7 @@ class ThreadedDocumentProcessor(ABC):
         document_number = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progress_file)
         documents_processed_by_this_thread = utils.numberOfDocumentsProcessedByThisThread(progress_file)        
         
-        cursor = self.db[self.collection_name].find(self.query, no_cursor_timeout=True).skip(document_number)
+        cursor = self.db[self.collection_name].find(self.query, no_cursor_timeout=True).sort({'_id':1}).skip(document_number)
 
         try:
             for document in cursor:
@@ -66,12 +68,8 @@ class ThreadedDocumentProcessor(ABC):
                         if object_to_write: # If your `processDocument()` function returns a dictionary, write it to the output file
                             with self.lock: # Thread-safe access to the output file
                                 with open(self.output_file, 'a') as f:
-                                    if document_number == 1:
-                                        f.write('[\n\t')
-                                        f.write(json.dumps(object_to_write))
-                                    else:
-                                        f.write(',\n\t')
-                                        f.write(json.dumps(object_to_write))
+                                    f.write(',\n\t')
+                                    f.write(json.dumps(object_to_write))
 
                     except Exception as e:
                         utils.logError(self.error_logger, e, thread_number)
