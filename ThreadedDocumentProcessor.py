@@ -56,7 +56,7 @@ class ThreadedDocumentProcessor(ABC):
         document_number = utils.lastAbsoluteDocumentNumberProcessedByThisThread(progress_file)
         documents_processed_by_this_thread = utils.numberOfDocumentsProcessedByThisThread(progress_file)        
         
-        cursor = self.db[self.collection_name].find(self.query, no_cursor_timeout=True).sort({'_id':1}).skip(document_number)
+        cursor = self.db[self.collection_name].find(self.query, no_cursor_timeout=True).sort('_id').skip(document_number)
 
         try:
             for document in cursor:
