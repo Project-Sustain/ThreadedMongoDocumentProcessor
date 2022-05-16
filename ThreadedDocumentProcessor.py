@@ -6,6 +6,7 @@ from os.path import exists
 from threading import Thread, Lock
 from pymongo.errors import CursorNotFound
 import utils
+import urllib.parse
 
 
 class ThreadedDocumentProcessor(ABC):
@@ -22,7 +23,9 @@ class ThreadedDocumentProcessor(ABC):
         logging.basicConfig(filename=self.error_file, level=logging.DEBUG, format='%(levelname)s %(name)s %(message)s')
         self.error_logger = logging.getLogger(__name__)
         
-        mongo = pymongo.MongoClient('mongodb://lattice-100:27018/')
+        username = urllib.parse.quote_plus(os.environ.get('MONGOAUTHUSER'))
+        password = urllib.parse.quote_plus(os.environ.get('MONGOAUTHPASS'))
+        mongo = pymongo.MongoClient(f'mongodb://{username}:{password}@lattice-100:27018/')
         self.db = mongo['sustaindb']
         self.query = query
         self.number_of_documents = self.db[collection_name].count_documents(query)
