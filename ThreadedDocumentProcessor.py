@@ -23,8 +23,8 @@ class ThreadedDocumentProcessor(ABC):
         logging.basicConfig(filename=self.error_file, level=logging.DEBUG, format='%(levelname)s %(name)s %(message)s')
         self.error_logger = logging.getLogger(__name__)
         
-        username = urllib.parse.quote_plus(os.environ.get('MONGOAUTHUSER'))
-        password = urllib.parse.quote_plus(os.environ.get('MONGOAUTHPASS'))
+        username = urllib.parse.quote_plus(os.environ.get('ROOT_MONGO_USER'))
+        password = urllib.parse.quote_plus(os.environ.get('ROOT_MONGO_PASS'))
         mongo = pymongo.MongoClient(f'mongodb://{username}:{password}@lattice-100:27018/')
         self.db = mongo['sustaindb']
         self.query = query
